@@ -73,7 +73,7 @@ pub trait Writer: Client {
 /// Asynchronous Modbus client context
 #[derive(Debug)]
 pub struct Context {
-    client: Box<dyn Client>,
+    client: Box<dyn Client + Sync>,
 }
 
 impl Context {
@@ -91,13 +91,13 @@ impl Context {
     }
 }
 
-impl From<Box<dyn Client>> for Context {
-    fn from(client: Box<dyn Client>) -> Self {
+impl From<Box<dyn Client + Sync>> for Context {
+    fn from(client: Box<dyn Client + Sync>) -> Self {
         Self { client }
     }
 }
 
-impl From<Context> for Box<dyn Client> {
+impl From<Context> for Box<dyn Client + Sync> {
     fn from(val: Context) -> Self {
         val.client
     }

@@ -49,7 +49,7 @@ impl Server {
             tokio::spawn(Box::pin(async move {
                 let service = new_service.new_service().unwrap();
                 if let Err(err) = process(framed, service).await {
-                    eprintln!("{:?}", err);
+                    eprintln!("internal error in tokio-modbus: {:?}", err);
                 }
             }));
         }

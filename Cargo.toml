@@ -26,18 +26,31 @@ tokio = { version = "1.17.0", default-features = false }
 # Disable default-features to exclude unused dependency on libudev
 tokio-serial = { version = "5.4.1", optional = true, default-features = false }
 tokio-util = { version = "0.7.0", features = ["codec"] }
+async-trait-with-sync = { version = "0.1" }
 
 [dev-dependencies]
 env_logger = "0.9.0"
 futures = "0.3.21"
-tokio = { version = "1.17.0", features = ["net", "macros", "io-util", "rt", "time"] }
+tokio = { version = "1.17.0", features = [
+    "net",
+    "macros",
+    "io-util",
+    "rt",
+    "time",
+] }
 
 [features]
 default = ["tcp", "rtu"]
 rtu = ["tokio-serial", "futures-util/sink"]
 tcp = ["tokio/net", "futures-util/sink"]
 sync = ["tokio/rt"]
-server = ["futures", "socket2/all", "tokio/macros", "tokio/rt", "tokio/rt-multi-thread"]
+server = [
+    "futures",
+    "socket2/all",
+    "tokio/macros",
+    "tokio/rt",
+    "tokio/rt-multi-thread",
+]
 tcp-server-unstable = ["tcp", "server"]
 
 [badges]

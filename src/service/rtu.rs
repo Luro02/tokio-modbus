@@ -90,8 +90,8 @@ impl<T: AsyncRead + AsyncWrite + Debug + Unpin + 'static> SlaveContext for Conte
     }
 }
 
-#[async_trait::async_trait]
-impl<T: AsyncRead + AsyncWrite + Debug + Unpin + Send + 'static> Client for Context<T> {
+#[async_trait_with_sync::async_trait(Sync)]
+impl<T: AsyncRead + AsyncWrite + Debug + Unpin + Send + 'static + Sync> Client for Context<T> {
     async fn call(&mut self, req: Request) -> Result<Response, Error> {
         self.call(req).await
     }

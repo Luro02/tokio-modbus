@@ -19,8 +19,8 @@ pub mod rtu;
 pub mod tcp;
 
 /// Transport independent asynchronous client trait
-#[async_trait]
-pub trait Client: SlaveContext + Send + Debug {
+#[async_trait_with_sync::async_trait(Sync)]
+pub trait Client: SlaveContext + Send + Debug + Sync {
     /// Invoke a Modbus function
     async fn call(&mut self, request: Request) -> Result<Response, Error>;
 }
@@ -103,7 +103,7 @@ impl From<Context> for Box<dyn Client + Sync> {
     }
 }
 
-#[async_trait]
+#[async_trait_with_sync::async_trait(Sync)]
 impl Client for Context {
     async fn call<'a>(&'a mut self, request: Request) -> Result<Response, Error> {
         self.client.call(request).await
@@ -329,7 +329,7 @@ mod tests {
         }
     }
 
-    #[async_trait]
+    #[async_trait_with_sync::async_trait(Sync)]
     impl Client for ClientMock {
         async fn call<'a>(&'a mut self, request: Request) -> Result<Response, Error> {
             *self.last_request.lock().unwrap() = Some(request);

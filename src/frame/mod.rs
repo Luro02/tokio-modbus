@@ -7,7 +7,7 @@ pub mod tcp;
 use std::{error, fmt};
 
 /// A Modbus function code is represented by an unsigned 8 bit integer.
-pub(crate) type FunctionCode = u8;
+pub type FunctionCode = u8;
 
 /// A Modbus protocol address is represented by 16 bit from `0` to `65535`.
 ///
@@ -15,19 +15,19 @@ pub(crate) type FunctionCode = u8;
 /// *register address* is often specified as a number with 1-based indexing.
 /// Please consult the specification of your devices if 1-based coil/register
 /// addresses need to be converted to 0-based protocol addresses by subtracting 1.
-pub(crate) type Address = u16;
+pub type Address = u16;
 
 /// A Coil represents a single bit.
 ///
 /// - `true` is equivalent to `ON`, `1` and `0xFF00`.
 /// - `false` is equivalent to `OFF`, `0` and `0x0000`.
-pub(crate) type Coil = bool;
+pub type Coil = bool;
 
 /// Modbus uses 16 bit for its data items (big-endian representation).
-pub(crate) type Word = u16;
+pub type Word = u16;
 
 /// Number of items to process (`0` - `65535`).
-pub(crate) type Quantity = u16;
+pub type Quantity = u16;
 
 /// A request represents a message from the client (master) to the server (slave).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -174,7 +174,7 @@ impl From<Exception> for u8 {
 }
 
 impl Exception {
-    pub(crate) fn description(&self) -> &str {
+    pub fn description(&self) -> &str {
         use crate::frame::Exception::*;
 
         match *self {
@@ -200,7 +200,7 @@ pub struct ExceptionResponse {
 
 /// Represents a message from the client (slave) to the server (master).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct RequestPdu(pub(crate) Request);
+pub struct RequestPdu(pub Request);
 
 impl From<Request> for RequestPdu {
     fn from(from: Request) -> Self {
@@ -216,7 +216,7 @@ impl From<RequestPdu> for Request {
 
 /// Represents a message from the server (slave) to the client (master).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ResponsePdu(pub(crate) Result<Response, ExceptionResponse>);
+pub struct ResponsePdu(pub Result<Response, ExceptionResponse>);
 
 impl From<Response> for ResponsePdu {
     fn from(from: Response) -> Self {

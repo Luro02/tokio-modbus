@@ -7,16 +7,18 @@ use bytes::{BufMut, Bytes, BytesMut};
 use std::io::{Error, ErrorKind, Result};
 use tokio_util::codec::{Decoder, Encoder};
 
+use log::trace;
+
 const HEADER_LEN: usize = 7;
 
 const PROTOCOL_ID: u16 = 0x0000; // TCP
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct AduDecoder;
+pub struct AduDecoder;
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct ClientCodec {
-    pub(crate) decoder: AduDecoder,
+pub struct ClientCodec {
+    pub decoder: AduDecoder,
 }
 
 impl Default for ClientCodec {
@@ -28,8 +30,8 @@ impl Default for ClientCodec {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct ServerCodec {
-    pub(crate) decoder: AduDecoder,
+pub struct ServerCodec {
+    pub decoder: AduDecoder,
 }
 
 impl Default for ServerCodec {
@@ -46,6 +48,7 @@ impl Decoder for AduDecoder {
 
     #[allow(clippy::assertions_on_constants)]
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<(Header, Bytes)>> {
+        trace!("adu decoder decoding: {:?}", buf);
         if buf.len() < HEADER_LEN {
             return Ok(None);
         }
@@ -92,6 +95,7 @@ impl Decoder for AduDecoder {
 
         let pdu_data = buf.split_to(pdu_len).freeze();
 
+        trace!("adu decoder decoded: ({:?}, {:?})", header, pdu_data);
         Ok(Some((header, pdu_data)))
     }
 }
@@ -101,8 +105,10 @@ impl Decoder for ClientCodec {
     type Error = Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<ResponseAdu>> {
+        trace!("client codec decoding: {:02x?}", buf);
         if let Some((hdr, pdu_data)) = self.decoder.decode(buf)? {
             let pdu = ResponsePdu::try_from(pdu_data)?;
+            trace!("client codec decoding response: {:?} {:?}", hdr, pdu);
             Ok(Some(ResponseAdu { hdr, pdu }))
         } else {
             Ok(None)
@@ -115,8 +121,10 @@ impl Decoder for ServerCodec {
     type Error = Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<RequestAdu>> {
+        trace!("server codec decoding: {:02x?}", buf);
         if let Some((hdr, pdu_data)) = self.decoder.decode(buf)? {
             let pdu = RequestPdu::try_from(pdu_data)?;
+            trace!("server codec decoding request: {:?} {:?}", hdr, pdu);
             Ok(Some(RequestAdu {
                 hdr,
                 pdu,
@@ -149,6 +157,8 @@ impl Encoder<RequestAdu> for ClientCodec {
         buf.put_u16(u16_len(pdu_data.len() + 1));
         buf.put_u8(hdr.unit_id);
         buf.put_slice(&*pdu_data);
+
+        trace!("client codec encoded: {:02x?}", buf);
         Ok(())
     }
 }
@@ -165,6 +175,8 @@ impl Encoder<ResponseAdu> for ServerCodec {
         buf.put_u16(u16_len(pdu_data.len() + 1));
         buf.put_u8(hdr.unit_id);
         buf.put_slice(&*pdu_data);
+
+        trace!("server codec encoded: {:02x?}", buf);
         Ok(())
     }
 }

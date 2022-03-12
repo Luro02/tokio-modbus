@@ -91,6 +91,26 @@ impl Server {
     }
 }
 
+// TODO: move this somewhere else?/replace with inspect_err
+pub trait ResultExt<T, E> {
+    fn log_err(self, log_fn: impl FnOnce(&E)) -> Self;
+}
+
+impl<T, E> ResultExt<T, E> for Result<T, E>
+where
+    for<'a> &'a E: std::fmt::Display,
+{
+    fn log_err(self, log_fn: impl FnOnce(&E)) -> Self {
+        match self {
+            Ok(value) => Ok(value),
+            Err(error) => {
+                log_fn(&error);
+                Err(error)
+            }
+        }
+    }
+}
+
 /// The request-response loop spawned by serve_until for each client
 async fn process<S>(
     framed: Framed<TcpStream, codec::tcp::ServerCodec>,
@@ -112,7 +132,11 @@ where
 
         let request = request.unwrap()?;
         let hdr = request.hdr;
-        let response = service.call(request.pdu.0).await.map_err(Into::into)?;
+        let response = service
+            .call(request.pdu.0)
+            .await
+            .map_err(Into::into)
+            .log_err(|e| error!("service returned an error: {}", e))?;
 
         framed
             .send(tcp::ResponseAdu {

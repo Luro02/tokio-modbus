@@ -402,23 +402,30 @@ fn unpack_coils(bytes: &[u8], count: u16) -> Vec<Coil> {
     res
 }
 
-fn req_to_fn_code(req: &Request) -> u8 {
-    use crate::frame::Request::*;
-    match *req {
-        ReadCoils(_, _) => 0x01,
-        ReadDiscreteInputs(_, _) => 0x02,
-        WriteSingleCoil(_, _) => 0x05,
-        WriteMultipleCoils(_, _) => 0x0F,
-        ReadInputRegisters(_, _) => 0x04,
-        ReadHoldingRegisters(_, _) => 0x03,
-        WriteSingleRegister(_, _) => 0x06,
-        WriteMultipleRegisters(_, _) => 0x10,
-        ReadWriteMultipleRegisters(_, _, _, _) => 0x17,
-        Custom(code, _) => code,
-        Disconnect => unreachable!(),
+impl Request {
+    pub fn function_code(&self) -> u8 {
+        match self {
+            Self::ReadCoils(_, _) => 0x01,
+            Self::ReadDiscreteInputs(_, _) => 0x02,
+            Self::WriteSingleCoil(_, _) => 0x05,
+            Self::WriteMultipleCoils(_, _) => 0x0F,
+            Self::ReadInputRegisters(_, _) => 0x04,
+            Self::ReadHoldingRegisters(_, _) => 0x03,
+            Self::WriteSingleRegister(_, _) => 0x06,
+            Self::WriteMultipleRegisters(_, _) => 0x10,
+            Self::ReadWriteMultipleRegisters(_, _, _, _) => 0x17,
+            Self::Custom(code, _) => *code,
+            Self::Disconnect => unreachable!(),
+        }
     }
 }
 
+// TODO: remove this function
+fn req_to_fn_code(req: &Request) -> u8 {
+    req.function_code()
+}
+
+// TODO: same as with req_to_fn_code
 fn rsp_to_fn_code(rsp: &Response) -> u8 {
     use crate::frame::Response::*;
     match *rsp {
